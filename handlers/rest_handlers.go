@@ -49,32 +49,40 @@ func LoginEndPoint(c *gin.Context) {
 
 	loginData:=models.LoginRequest{}
 
-	err:=c.Bind(loginData)
+	err:=c.Bind(&loginData)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	err=controllers.AuthenticateUser(&loginData)
+	user,err:=controllers.AuthenticateUser(&loginData)
 
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	token_value,err1:=controllers.GenerateToken()
+	token_value,err1:=controllers.GenerateToken(user.Email,user.FirstName,user.LastName,user.UserId)
 
 	if err1 != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
+	err=controllers.UpdateToken(token_value ,&user)
 	
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
 	response:=models.LoginResponse{
 		Token: token_value,
 	}
 	
+
 	c.JSON(http.StatusOK,response)
 
 

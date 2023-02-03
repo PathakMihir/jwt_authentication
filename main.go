@@ -10,5 +10,4 @@ func main() {
 	fmt.Println("hi")
 	server.Init()
 
-
 }

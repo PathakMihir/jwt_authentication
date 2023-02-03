@@ -9,25 +9,26 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func ValidateUser(userRequest *models.User) error {
 	db_connector := connections.DB_Connect()
 	defer connections.CloseClientDB(db_connector)
 
-
 	collections := connections.GetCollection(db_connector, "Users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	count,err:=collections.CountDocuments(ctx,bson.D{{Key: "email",Value: userRequest.Email}})
+	count, err := collections.CountDocuments(ctx, bson.D{{Key: "email", Value: userRequest.Email}})
 	if err != nil {
 		log.Printf("Insertion Error")
 		return err
 	}
-	if count>0{
-		
+	if count > 0 {
+
 		return errors.New("User Already Exists")
 	}
 	return nil
@@ -38,7 +39,6 @@ func InsertUser(userRequest *models.User) error {
 
 	db_connector := connections.DB_Connect()
 	defer connections.CloseClientDB(db_connector)
-
 
 	collections := connections.GetCollection(db_connector, "Users")
 
@@ -56,8 +56,61 @@ func InsertUser(userRequest *models.User) error {
 
 }
 
-func AuthenticateUser(loginDetails *models.LoginRequest) error{
+func AuthenticateUser(loginDetails *models.LoginRequest) (models.User, error) {
 
-	return nil
+	db_connector := connections.DB_Connect()
+	defer connections.CloseClientDB(db_connector)
+
+	collections := connections.GetCollection(db_connector, "Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	var usr models.User
+	err := collections.FindOne(ctx, bson.D{{Key: "email", Value: loginDetails.Email}}).Decode(&usr)
+
+	if err != nil {
+		log.Printf("User Not Found")
+		return usr, errors.New("User Not Found")
+	}
+
+	if usr.Password == loginDetails.Password {
+		return usr, nil
+	}
+
+	log.Println("Authentication Failed.....")
+	return models.User{}, errors.New("Authentication Failed")
 }
 
+func UpdateToken(token string, user *models.User) error {
+
+	db_connector := connections.DB_Connect()
+	defer connections.CloseClientDB(db_connector)
+
+	collections := connections.GetCollection(db_connector, "Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.D{{Key: "_id", Value: user.ID}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "token", Value: token}}}}
+    var updatedDocument bson.M
+	err := collections.FindOneAndUpdate(
+		ctx,
+		filter,
+		update,
+		opts,
+	).Decode(&updatedDocument)
+
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in
+		// the collection.
+		log.Println("Error in Updating the token")
+		if err == mongo.ErrNoDocuments {
+			return errors.New("User not found")
+		}
+		log.Fatal(err)
+	}
+	return nil
+
+}
