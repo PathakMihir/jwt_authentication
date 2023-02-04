@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -30,25 +31,25 @@ func GenerateToken(email string, first_name string, last_name string, user_id st
 		},
 	}
 
-	refreshClaims:=&jwtCustomClaims{
+	refreshClaims := &jwtCustomClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(10 * time.Minute).Unix(),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
-	refreshToken:=jwt.NewWithClaims(jwt.GetSigningMethod("HS256"),refreshClaims)
-	
+	refreshToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), refreshClaims)
+
 	tokenString, err := token.SignedString(sampleSecretKey)
 	if err != nil {
 		return "", err
 	}
 
-	refreshTokenString, err :=  refreshToken.SignedString(sampleSecretKey)
+	refreshTokenString, err := refreshToken.SignedString(sampleSecretKey)
 	if err != nil {
 		return "", err
 	}
-	
+
 	fmt.Print(tokenString)
 	fmt.Print(refreshTokenString)
 
@@ -56,6 +57,29 @@ func GenerateToken(email string, first_name string, last_name string, user_id st
 
 }
 
-func VerifyToken(token string) error {
-	return errors.New("Test")
+func VerifyToken(tokenString string) (claims *jwtCustomClaims, err error) {
+
+	token, err := jwt.ParseWithClaims(tokenString, &jwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		// since we only use the one private key to sign the tokens,
+		// we also only use its public counter part to verify
+		return sampleSecretKey, nil
+	})
+	if err != nil {
+		
+		return claims,errors.New("Authorization Failed....")
+	}
+
+	claims, ok := token.Claims.(*jwtCustomClaims)
+
+	if !ok {
+		
+		return claims,errors.New("Claims Extraction Error...")
+	}
+
+	if claims.ExpiresAt < time.Now().Local().Unix() {
+		log.Println("Token Expired....")
+		return claims,errors.New("Token is expired")
+	}
+
+	return claims,nil
 }

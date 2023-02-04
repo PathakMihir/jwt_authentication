@@ -18,9 +18,9 @@ func Init()  {
     v1.POST("/login",  handlers.LoginEndPoint)
     v1.POST("/signIn", handlers.SignInEndPoint)
 
-	authorizationGroup:=v1.Group("")
+	authorizationGroup:=v1.Group("/profiles")
 	authorizationGroup.Use(middlewares.Authenticate)
-	authorizationGroup.GET("/user",handlers.GetProfiles)
+	authorizationGroup.GET("/users",handlers.GetProfiles)
 	
   }
   	

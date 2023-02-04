@@ -89,5 +89,14 @@ func LoginEndPoint(c *gin.Context) {
 }
 
 func GetProfiles(c *gin.Context) {
+	result,err:= controllers.GetAllUsers()
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusAccepted,result)
 
 }

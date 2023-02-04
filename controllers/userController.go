@@ -114,3 +114,37 @@ func UpdateToken(token string, user *models.User) error {
 	return nil
 
 }
+
+
+func GetAllUsers()([]models.User,error){
+
+	db_connector := connections.DB_Connect()
+	defer connections.CloseClientDB(db_connector)
+
+	collections := connections.GetCollection(db_connector, "Users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var results []models.User
+	cursor,err:=collections.Find(ctx,bson.D{})
+	if err != nil {
+		log.Printf("User Not Found")
+		return results, errors.New("User Not Found")
+	}
+
+	for cursor.Next(context.TODO()) {
+		var user models.User
+		if err := cursor.Decode(&user); err != nil {
+			log.Println(err)
+			return nil,err
+		}
+		log.Printf("%+v\n", user)
+		results = append(results, user)
+	}
+	
+	if err := cursor.Err(); err != nil {
+		log.Println(err)
+		return nil,err
+	}
+	return results,nil
+}
