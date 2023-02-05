@@ -1,6 +1,7 @@
 package models
 
 import (
+	"go/constant"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,7 +13,7 @@ type User struct {
 	FirstName    string             `json:"first_name" binding:"required" bson:"first_name"`
 	LastName     string             `json:"last_name" binding:"required" bson:"last_name"`
 	Email        string             `json:"email" binding:"required,email" bson:"email"`
-	PhoneNumber  string             `json:"phone_number" binding:"required,max=10" bson:"phone_number"` 
+	PhoneNumber  string             `json:"phone_number" binding:"required,max=10" bson:"phone_number"`
 	Password     string             `json:"password" binding:"required,min=6" bson:"password"`
 	Token        string             `json:"token" bson:"token"`
 	RefreshToken string             `json:"refresh_token" bson:"refresh_token"`
@@ -28,3 +29,20 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token" binding:"required"`
 }
+
+type ErrorResponse struct {
+	Error   ErrorDetail
+	Status  string
+	Message string
+}
+
+type ErrorDetail struct {
+	ErrorType    string
+	ErrorMessage string
+}
+
+// type Permission struct{
+// 	PermissionId int
+// 	PermissionTag 
+
+// }

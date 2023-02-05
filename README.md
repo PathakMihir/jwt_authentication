@@ -1,10 +1,17 @@
-# JWT Authentication 
-Simple JWT Authentication Implementation
+# Role Based Authentication using JWT Authentication 
+
+The project demonstrates following features:
+ 
+* JWT Authentication Implementation
+* SignIn/Login Api Implementation
+* Role Based Authentication
+
 Data Model:
 
 >API Requests:
 
-1.
+1.SignIn API
+
 ```
     POST api/v1/user/signIn 
     Body: {
@@ -29,7 +36,7 @@ Task:
 * Return Response and Error Handling->Done
 
 
-2.
+2.Login API
 ```
     POST api/v1/users/login
     Body: {
@@ -44,6 +51,7 @@ Task:
         "refresh_token":
     }
 ```    
+
 Implementation:
 
 User should be able to verify the password and email as per in the database and generate a new token and refresh token and return back in the response.    
@@ -60,6 +68,21 @@ User should be able to verify the password and email as per in the database and 
 
 ```
 This api shows the use of JWT Authentication middleware...    
+
+4.Refresh Token :
+ 
+ ```
+ 
+ GET api/v1/refreshToken + HTTP-Only cookie with refresh_token without expiry
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFbWFpbCI6Impob25AZ21haWwuY29tIiwiRmlyc3ROYW1lIjoiamhvbiIsIkxhc3ROYW1lIjoiMjIiLCJVc2VySUQiOiIiLCJleHAiOjE2NzU1NjQyMTR9.RP-nfcl03bJf0K1tTEhXNmIxRUj6TQCCvdT9Q4ppvFc"
+}
+
+```
+
+5.
+
 
 
 
