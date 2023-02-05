@@ -14,7 +14,7 @@ import (
 func SignInEndPoint(c *gin.Context) {
 
 	user_data := models.User{}
-	
+
 	err := c.Bind(&user_data)
 	if err != nil {
 		log.Println(err)
@@ -38,7 +38,7 @@ func SignInEndPoint(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
-		return 
+		return
 	}
 	log.Println(user_data)
 	c.JSON(http.StatusAccepted, "User Signed Up Successfully")
@@ -47,49 +47,93 @@ func SignInEndPoint(c *gin.Context) {
 
 func LoginEndPoint(c *gin.Context) {
 
-	loginData:=models.LoginRequest{}
+	loginData := models.LoginRequest{}
 
-	err:=c.Bind(&loginData)
+	err := c.Bind(&loginData)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	user,err:=controllers.AuthenticateUser(&loginData)
+	user, err := controllers.AuthenticateUser(&loginData)
 
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	token_value,err1:=controllers.GenerateToken(user.Email,user.FirstName,user.LastName,user.UserId)
+	token_value, refresh_token_value, err1 := controllers.GenerateToken(user.Email, user.FirstName, user.LastName, user.UserId)
+	log.Println(token_value)
+	log.Println(refresh_token_value)
+	if err1 != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	err = controllers.UpdateToken(token_value, refresh_token_value, user.Email)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	response := models.LoginResponse{
+		Token: token_value,
+	}
+	c.SetCookie("refresh_token", refresh_token_value, 3600, "/", "", false, true)
+
+	c.JSON(http.StatusOK, response)
+
+}
+
+func RefreshToken(c *gin.Context) {
+
+	cookie, err := c.Cookie("refresh_token")
+	log.Println(cookie)
+
+	if err != nil {
+		log.Println("No refresh token found")
+		c.JSON(http.StatusInternalServerError, err)
+		return
+
+	}
+
+	claims, err := controllers.VerifyToken(cookie)
+
+	if err != nil {
+		log.Println("Refesh Token not verified")
+		c.JSON(http.StatusInternalServerError, err)
+		return 
+	}
+	token_value, refresh_token_value, err1 := controllers.GenerateToken(claims.Email, claims.FirstName, claims.LastName, claims.Id)
 
 	if err1 != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	err=controllers.UpdateToken(token_value ,&user)
-	
+	err = controllers.UpdateToken(token_value, refresh_token_value, claims.Email)
+
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	response:=models.LoginResponse{
+	response := models.LoginResponse{
 		Token: token_value,
 	}
-	
 
-	c.JSON(http.StatusOK,response)
+	c.SetCookie("refresh_token", refresh_token_value, 3600, "/", "", false, true)
 
+	c.JSON(http.StatusOK, response)
 
 }
 
 func GetProfiles(c *gin.Context) {
-	result,err:= controllers.GetAllUsers()
+	result, err := controllers.GetAllUsers()
 
 	if err != nil {
 		log.Println(err)
@@ -97,6 +141,6 @@ func GetProfiles(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted,result)
+	c.JSON(http.StatusAccepted, result)
 
 }

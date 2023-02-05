@@ -19,7 +19,7 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateToken(email string, first_name string, last_name string, user_id string) (string, error) {
+func GenerateToken(email string, first_name string, last_name string, user_id string) (string,string, error) {
 
 	claims := &jwtCustomClaims{
 		Email:     email,
@@ -27,11 +27,15 @@ func GenerateToken(email string, first_name string, last_name string, user_id st
 		LastName:  last_name,
 		UserID:    user_id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(10 * time.Minute).Unix(),
+			ExpiresAt: time.Now().Local().Add(5 * time.Minute).Unix(),
 		},
 	}
 
 	refreshClaims := &jwtCustomClaims{
+		Email:     email,
+		FirstName: first_name,
+		LastName:  last_name,
+		UserID:    user_id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(10 * time.Minute).Unix(),
 		},
@@ -42,18 +46,18 @@ func GenerateToken(email string, first_name string, last_name string, user_id st
 
 	tokenString, err := token.SignedString(sampleSecretKey)
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 
 	refreshTokenString, err := refreshToken.SignedString(sampleSecretKey)
 	if err != nil {
-		return "", err
+		return "","" ,err
 	}
 
 	fmt.Print(tokenString)
 	fmt.Print(refreshTokenString)
 
-	return tokenString, nil
+	return tokenString,refreshTokenString, nil
 
 }
 
@@ -65,14 +69,14 @@ func VerifyToken(tokenString string) (claims *jwtCustomClaims, err error) {
 		return sampleSecretKey, nil
 	})
 	if err != nil {
-		
+		log.Println("Authorization Failed")
 		return claims,errors.New("Authorization Failed....")
 	}
 
 	claims, ok := token.Claims.(*jwtCustomClaims)
 
 	if !ok {
-		
+		log.Println("Claims Extraction Error")
 		return claims,errors.New("Claims Extraction Error...")
 	}
 
@@ -83,3 +87,4 @@ func VerifyToken(tokenString string) (claims *jwtCustomClaims, err error) {
 
 	return claims,nil
 }
+

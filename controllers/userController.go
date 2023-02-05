@@ -81,8 +81,8 @@ func AuthenticateUser(loginDetails *models.LoginRequest) (models.User, error) {
 	return models.User{}, errors.New("Authentication Failed")
 }
 
-func UpdateToken(token string, user *models.User) error {
-
+func UpdateToken(token string, refresh_token string, email string) error {
+	log.Println(email)
 	db_connector := connections.DB_Connect()
 	defer connections.CloseClientDB(db_connector)
 
@@ -92,9 +92,9 @@ func UpdateToken(token string, user *models.User) error {
 	defer cancel()
 
 	opts := options.FindOneAndUpdate().SetUpsert(true)
-	filter := bson.D{{Key: "_id", Value: user.ID}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "token", Value: token}}}}
-    var updatedDocument bson.M
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "token", Value: token}, {Key: "refresh_token", Value: refresh_token}}}}
+	var updatedDocument bson.M
 	err := collections.FindOneAndUpdate(
 		ctx,
 		filter,
@@ -115,8 +115,7 @@ func UpdateToken(token string, user *models.User) error {
 
 }
 
-
-func GetAllUsers()([]models.User,error){
+func GetAllUsers() ([]models.User, error) {
 
 	db_connector := connections.DB_Connect()
 	defer connections.CloseClientDB(db_connector)
@@ -126,7 +125,7 @@ func GetAllUsers()([]models.User,error){
 	defer cancel()
 
 	var results []models.User
-	cursor,err:=collections.Find(ctx,bson.D{})
+	cursor, err := collections.Find(ctx, bson.D{})
 	if err != nil {
 		log.Printf("User Not Found")
 		return results, errors.New("User Not Found")
@@ -136,15 +135,15 @@ func GetAllUsers()([]models.User,error){
 		var user models.User
 		if err := cursor.Decode(&user); err != nil {
 			log.Println(err)
-			return nil,err
+			return nil, err
 		}
 		log.Printf("%+v\n", user)
 		results = append(results, user)
 	}
-	
+
 	if err := cursor.Err(); err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
-	return results,nil
+	return results, nil
 }

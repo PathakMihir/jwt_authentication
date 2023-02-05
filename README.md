@@ -49,7 +49,17 @@ Implementation:
 User should be able to verify the password and email as per in the database and generate a new token and refresh token and return back in the response.    
 
 3.All other API have middleware implementation which verifies the token before granting access to the particular api.
+ 
+```
+    GET api/v1/profiles/users/ + token
+    
+    Response:
+    {
+        users_list
+    }
 
+```
+This api shows the use of JWT Authentication middleware...    
 
 
 
