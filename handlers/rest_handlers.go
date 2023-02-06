@@ -149,7 +149,7 @@ func GetProfiles(c *gin.Context) {
 
 func PasswordChange(c *gin.Context)(){
 	requestModel:=models.PasswordChange{}
-	err:=c.BindJSON(requestModel)
+	err:=c.BindJSON(&requestModel)
 
 	if err != nil {
 		log.Println(err)
