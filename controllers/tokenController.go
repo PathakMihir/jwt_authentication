@@ -1,12 +1,17 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"jwt_athentication/connections"
 	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var sampleSecretKey = []byte("SecretYouShouldHide")
@@ -88,3 +93,38 @@ func VerifyToken(tokenString string) (claims *jwtCustomClaims, err error) {
 	return claims,nil
 }
 
+
+
+func UpdateToken(token string, refresh_token string, email string) error {
+	log.Println(email)
+	db_connector := connections.DB_Connect()
+	defer connections.CloseClientDB(db_connector)
+
+	collections := connections.GetCollection(db_connector, "Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "token", Value: token}, {Key: "refresh_token", Value: refresh_token}}}}
+	var updatedDocument bson.M
+	err := collections.FindOneAndUpdate(
+		ctx,
+		filter,
+		update,
+		opts,
+	).Decode(&updatedDocument)
+
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in
+		// the collection.
+		log.Println("Error in Updating the token")
+		if err == mongo.ErrNoDocuments {
+			return errors.New("User not found")
+		}
+		log.Fatal(err)
+	}
+	return nil
+
+}

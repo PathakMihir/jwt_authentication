@@ -1,7 +1,6 @@
 package models
 
 import (
-	"go/constant"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,6 +29,12 @@ type LoginResponse struct {
 	Token string `json:"token" binding:"required"`
 }
 
+type PasswordChange struct{
+	Email string `json:"email" binding:"required"`
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
 type ErrorResponse struct {
 	Error   ErrorDetail
 	Status  string
@@ -43,6 +48,6 @@ type ErrorDetail struct {
 
 // type Permission struct{
 // 	PermissionId int
-// 	PermissionTag 
+// 	PermissionTag
 
 // }

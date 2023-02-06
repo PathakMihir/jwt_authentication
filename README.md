@@ -1,87 +1,58 @@
 # Role Based Authentication using JWT Authentication 
 
+This project can be used for simple JWT based authentication and User Mangement solution along with other microservices.
+
+Dependency: Authentication Server + MongoDB
+
 The project demonstrates following features:
  
 * JWT Authentication Implementation
 * SignIn/Login Api Implementation
+* Reset Password Implementation
+* Middleware Implementation
 * Role Based Authentication
 
-Data Model:
 
->API Requests:
 
-1.SignIn API
+## API Requests:
 
-```
-    POST api/v1/user/signIn 
-    Body: {
-        "first_name":
-        "last_name":
-        "email":
-        "phone_number":
-        "password":
-        "address":
-        "pincode":
-        "type":
-    }
-```    
+**1.SignIn API**
 
-Implementation:
+<img src="images/SignIn.png" width="500" height="300" />
+
+ 
+
+**Implementation:**
 
 User should be able to sign in and load all the details into single entry in mongoDB with all validations    
 
-Task:
-* API Defination and Models ->Done
-* Validation Logic and DB insertion -> Done
-* Return Response and Error Handling->Done
+**Task:**
+* API Defination and Models 
+* Validation Logic and DB insertion 
+* Return Response and Error Handling
 
 
-2.Login API
-```
-    POST api/v1/users/login
-    Body: {
-        "email":
-        "password":
-    }
+**2.Login API**
+<img src="images/Login.png" width="500" height="300" />
 
-    Response:
-    {
-        user_details:{}
-        "token":
-        "refresh_token":
-    }
-```    
 
 Implementation:
 
 User should be able to verify the password and email as per in the database and generate a new token and refresh token and return back in the response.    
 
-3.All other API have middleware implementation which verifies the token before granting access to the particular api.
- 
-```
-    GET api/v1/profiles/users/ + token
-    
-    Response:
-    {
-        users_list
-    }
+**3.API access using Token**
+All other API have middleware implementation which verifies the token before granting access to the particular api.
 
-```
+<img src="images/TokenBasedAccess.png" width="500" height="300" />
+
 This api shows the use of JWT Authentication middleware...    
 
-4.Refresh Token :
+**4.Refresh Token :**
+Refresh Token API using HTTP-Only cookie
+<img src="images/LoginRefreshToken.png" width="500" height="300" />
  
- ```
- 
- GET api/v1/refreshToken + HTTP-Only cookie with refresh_token without expiry
+5.Password Reset:
 
-{
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFbWFpbCI6Impob25AZ21haWwuY29tIiwiRmlyc3ROYW1lIjoiamhvbiIsIkxhc3ROYW1lIjoiMjIiLCJVc2VySUQiOiIiLCJleHAiOjE2NzU1NjQyMTR9.RP-nfcl03bJf0K1tTEhXNmIxRUj6TQCCvdT9Q4ppvFc"
-}
-
-```
-
-5.
 
 
 

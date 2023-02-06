@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"jwt_athentication/controllers"
 	"jwt_athentication/models"
+	"jwt_athentication/repositories"
 	"log"
 	"net/http"
 	"time"
@@ -34,7 +36,7 @@ func SignInEndPoint(c *gin.Context) {
 	user_data.Updated_at = time.Now()
 	user_data.ID = primitive.NewObjectID()
 
-	err = controllers.InsertUser(&user_data)
+	err = repositories.UserCreate(&user_data)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
@@ -133,7 +135,7 @@ func RefreshToken(c *gin.Context) {
 }
 
 func GetProfiles(c *gin.Context) {
-	result, err := controllers.GetAllUsers()
+	result, err := repositories.GetAll()
 
 	if err != nil {
 		log.Println(err)
@@ -142,5 +144,27 @@ func GetProfiles(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusAccepted, result)
+
+}
+
+func PasswordChange(c *gin.Context)(){
+	requestModel:=models.PasswordChange{}
+	err:=c.BindJSON(requestModel)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+
+	err=repositories.UserUpdatePassword(requestModel.Email,requestModel.NewPassword,requestModel.OldPassword)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError,errors.New("Password Change failed.."))
+		return
+	}
+	c.JSON(http.StatusAccepted,"Password Changed Successfully")
 
 }
